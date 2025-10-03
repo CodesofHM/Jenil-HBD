@@ -375,6 +375,32 @@
             from { transform: scale(0.95); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 480px) {
+            #intro-overlay h2 {
+                font-size: 2.25rem; /* 36px */
+                margin-bottom: 2rem;
+            }
+            .polaroid-container {
+                width: 240px;
+                height: 240px;
+                margin-bottom: 2rem;
+            }
+            .polaroid {
+                padding: 0.5rem 0.5rem 2rem 0.5rem;
+            }
+            #p1 { width: 150px; }
+            #p2 { width: 90px; top: -5%; left: -5%; }
+            #p3 { width: 100px; top: 0; right: -10%; }
+            #p4 { width: 85px; bottom: 5%; left: 0; }
+            #p5 { width: 95px; bottom: 0; right: -5%; }
+
+            #enter-btn {
+                padding: 0.625rem 1.5rem; /* 10px 24px */
+                font-size: 1rem; /* 16px */
+            }
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
