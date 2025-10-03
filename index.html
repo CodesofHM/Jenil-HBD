@@ -82,13 +82,17 @@
 
         .polaroid-container {
             position: relative;
-            width: 300px;
-            height: 300px;
+            width: 350px;
+            height: 350px;
             margin-bottom: 3rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1rem;
         }
 
         .polaroid {
-            position: absolute;
+            position: relative; /* Changed from absolute */
             background: white;
             padding: 0.75rem 0.75rem 2.5rem 0.75rem;
             border-radius: 0.25rem;
@@ -97,12 +101,31 @@
             animation: flyIn 1s ease-out forwards;
             cursor: pointer;
             transition: all 0.3s ease;
+            width: 100%; /* let grid control size */
+            height: 100%;
         }
         
-        .polaroid:hover {
-            transform: scale(1.15) rotate(0deg) !important;
+        .polaroid:not(.main-photo) {
+            opacity: 0.5; /* Make background images faded */
+            filter: grayscale(50%);
+        }
+
+        .polaroid:hover:not(.main-photo) {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.05) !important;
             z-index: 10;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .polaroid.main-photo {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg) !important;
+            width: 220px; /* Larger size */
+            height: auto;
+            z-index: 20;
+            animation-delay: 0.2s;
         }
 
         .polaroid img {
@@ -112,11 +135,11 @@
             filter: saturate(0.8) contrast(1.2);
         }
 
-        #p1 { top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg); animation-delay: 0.2s; z-index: 10; width: 180px; }
-        #p2 { top: 0; left: 0; transform: rotate(-25deg); animation-delay: 0.6s; width: 120px; }
-        #p3 { top: 10%; right: -5%; transform: rotate(20deg); animation-delay: 0.9s; width: 130px; }
-        #p4 { bottom: 0; left: 10%; transform: rotate(15deg); animation-delay: 1.2s; width: 110px; }
-        #p5 { bottom: -5%; right: 5%; transform: rotate(-20deg); animation-delay: 1.5s; width: 125px; }
+        /* Stagger animation for grid items */
+        #p2 { animation-delay: 0.6s; }
+        #p3 { animation-delay: 0.9s; }
+        #p4 { animation-delay: 1.2s; }
+        #p5 { animation-delay: 1.5s; }
 
         #enter-btn {
             opacity: 0;
@@ -383,18 +406,12 @@
                 margin-bottom: 2rem;
             }
             .polaroid-container {
-                width: 240px;
-                height: 240px;
-                margin-bottom: 2rem;
+                width: 280px;
+                height: 280px;
             }
-            .polaroid {
-                padding: 0.5rem 0.5rem 2rem 0.5rem;
+            .polaroid.main-photo {
+                width: 180px;
             }
-            #p1 { width: 150px; }
-            #p2 { width: 90px; top: -5%; left: -5%; }
-            #p3 { width: 100px; top: 0; right: -10%; }
-            #p4 { width: 85px; bottom: 5%; left: 0; }
-            #p5 { width: 95px; bottom: 0; right: -5%; }
 
             #enter-btn {
                 padding: 0.625rem 1.5rem; /* 10px 24px */
@@ -407,7 +424,7 @@
 
     <!-- Intro Overlay -->
     <div id="intro-overlay">
-        <h2 class="font-display text-4xl text-white mb-6 text-center    ">Birthday Celebration For Jenil</h2>
+        <h2 class="font-display text-4xl text-white mb-8 text-center    ">Birthday Celebration For Jenil</h2>
         <div class="polaroid-container">
             <div class="polaroid main-photo" id="p1"><img src="Pic for HBD/IMG_20250511_181118.jpg" alt="Jenil"></div>
             <div class="polaroid" id="p2"><img src="Pic for HBD/IMG_20250525_171457.jpg" alt="Jenil"></div>
@@ -415,7 +432,7 @@
             <div class="polaroid" id="p4"><img src="Pic for HBD/DSC_2448-1.JPG" alt="Jenil"></div>
             <div class="polaroid" id="p5"><img src="Pic for HBD/DSC_2182.JPG" alt="Jenil"></div>
         </div>
-        <button id="enter-btn" class="bg-amber-500 text-gray-900 font-bold py-3 px-8 rounded-lg hover:bg-amber-400 transition text-lg">Enter the Celebration</button>
+        <button id="enter-btn" class="bg-amber-500 text-gray-900 font-bold py-3 px-8 rounded-lg hover:bg-amber-400 transition text-lg ">Enter the Celebration</button>
     </div>
     
         <main class="max-w-7xl mx-auto flow-container min-h-screen max-h-screen overflow-y-auto p-4 pb-8" style="display: none;">
