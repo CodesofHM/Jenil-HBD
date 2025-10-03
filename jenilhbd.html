@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
+    <title>The Jenil Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #080b11;
+            color: #e6edf3;
+            background-image:
+                linear-gradient(rgba(30, 41, 59, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 41, 59, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0;
+            background-attachment: fixed;
+            overflow: hidden;
+            animation: subtleShift 15s linear infinite;
+            height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%,
+                transparent 0%,
+                rgba(0, 0, 0, 0.4) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom,
+                rgba(8, 11, 17, 0.2),
+                rgba(8, 11, 17, 0.1) 50%,
+                rgba(8, 11, 17, 0.2));
+            pointer-events: none;
+            z-index: 1;
+            animation: fadeInOut 8s ease-in-out infinite;
+        }
+
+        .font-display {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* --- Intro Styles --- */
+        #intro-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: #0d1117;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.8s ease-in, opacity 0.8s ease-in;
+        }
+
+        #intro-overlay.celebrate-and-hide {
+            transform: scale(1.5);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .polaroid-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin-bottom: 3rem;
+        }
+
+        .polaroid {
+            position: absolute;
+            background: white;
+            padding: 0.75rem 0.75rem 2.5rem 0.75rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            animation: flyIn 1s ease-out forwards;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .polaroid:hover {
+            transform: scale(1.15) rotate(0deg) !important;
+            z-index: 10;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(0.8) contrast(1.2);
+        }
+
+        #p1 { top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(0deg); animation-delay: 0.2s; z-index: 10; width: 180px; }
+        #p2 { top: 0; left: 0; transform: rotate(-25deg); animation-delay: 0.6s; width: 120px; }
+        #p3 { top: 10%; right: -5%; transform: rotate(20deg); animation-delay: 0.9s; width: 130px; }
+        #p4 { bottom: 0; left: 10%; transform: rotate(15deg); animation-delay: 1.2s; width: 110px; }
+        #p5 { bottom: -5%; right: 5%; transform: rotate(-20deg); animation-delay: 1.5s; width: 125px; }
+
+        #enter-btn {
+            opacity: 0;
+            animation: fadeIn 1s 2.5s ease forwards;
+        }
+
+        /* --- Main Content Styles --- */
+        .widget {
+            background: rgba(22, 27, 34, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid #30363d;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            animation: floatIn 0.8s ease-out forwards;
+            animation-play-state: paused;
+            max-height: calc(100vh - 8rem);
+            overflow-y: auto;
+        }
+
+        .widget::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(245, 158, 11, 0.2),
+                transparent);
+            transition: 0.5s;
+        }
+
+        .widget:hover {
+            border-color: #f59e0b;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .widget:hover::before {
+            left: 100%;
+        }
+
+        .birthday-wish {
+            background: linear-gradient(145deg, rgba(22, 27, 34, 0.9), rgba(40, 45, 53, 0.9));
+            border: 2px solid transparent;
+            border-image: linear-gradient(45deg, #f59e0b, #fbbf24, #f59e0b) 1;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.25),
+                inset 0 0 20px rgba(245, 158, 11, 0.1);
+            transform: scale(1.02);
+        }
+
+        .birthday-3d-text {
+            color: #5fff48;
+            text-shadow:
+                0 1px 0 #4aff30,
+                0 2px 0 #35ff17,
+                0 3px 0 #29e00c,
+                0 4px 0 #24c00a,
+                0 5px 0 #1fa008,
+                0 6px 1px rgba(0, 0, 0, .1),
+                0 0 5px rgba(0, 0, 0, .1),
+                0 1px 3px rgba(0, 0, 0, .3),
+                0 3px 5px rgba(0, 0, 0, .2),
+                0 5px 10px rgba(0, 0, 0, .25),
+                0 10px 10px rgba(0, 0, 0, .2),
+                0 20px 20px rgba(0, 0, 0, .15);
+        }
+
+        #typing-text::after {
+            content: '|';
+            animation: blink 1s step-end infinite;
+        }
+
+        .photo-wall-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .photo-wall-item {
+            aspect-ratio: 1/1;
+            border-radius: 0.5rem;
+            object-fit: cover;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.5s ease;
+        }
+
+        .photo-wall-item.revealed {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .carousel-item {
+            flex: 0 0 25%;
+            scroll-snap-align: center;
+            padding: 0 0.5rem;
+        }
+
+        .carousel-item img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border-radius: 0.75rem;
+        }
+
+        #confetti-btn {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            animation: pulse 2s infinite;
+        }
+
+        #confetti-btn:hover {
+            background: rgba(245, 158, 11, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* Lightbox Styles */
+        #lightbox {
+            background-color: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+        }
+
+        #lightbox img {
+            max-height: 90vh;
+            max-width: 90vw;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #lightbox.fade-in {
+            animation: lightboxFadeIn 0.3s ease forwards;
+        }
+
+        #lightbox.fade-out {
+            animation: lightboxFadeOut 0.3s ease forwards;
+        }
+
+        #lightbox-img {
+            animation: imgZoomIn 0.3s ease forwards;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(245, 158, 11, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 0.5);
+        }
+        
+        .widget::-webkit-scrollbar, main::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes subtleShift {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.05; }
+            50% { opacity: 0.15; }
+        }
+
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes flyIn {
+            from { opacity: 0; transform: scale(0.2) translateY(-200px); }
+            to { opacity: 1; transform: var(--transform-end, rotate(0deg)); }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes blink {
+            from, to { color: transparent; }
+            50% { color: #f59e0b; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes lightboxFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes lightboxFadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes imgZoomIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+
+    <!-- Intro Overlay -->
+    <div id="intro-overlay">
+        <h2 class="font-display text-4xl text-white mb-6 text-center    ">Birthday Celebration For Jenil</h2>
+        <div class="polaroid-container">
+            <div class="polaroid" id="p1"><img src="Pic for HBD/DSC_2182.JPG" alt="Jenil"></div>
+            <div class="polaroid" id="p2"><img src="Pic for HBD/IMG_20250525_171457.jpg" alt="Jenil"></div>
+            <div class="polaroid" id="p3"><img src="Pic for HBD/IMG_20250907_234708.jpg" alt="Jenil"></div>
+            <div class="polaroid" id="p4"><img src="Pic for HBD/DSC_2448-1.JPG" alt="Jenil"></div>
+            <div class="polaroid main-photo" id="p5"><img src="Pic for HBD/IMG_20250511_181118.jpg" alt="Jenil"></div>
+        </div>
+        <button id="enter-btn" class="bg-amber-500 text-gray-900 font-bold py-3 px-8 rounded-lg hover:bg-amber-400 transition text-lg">Enter the Celebration</button>
+    </div>
+    
+        <main class="max-w-7xl mx-auto flow-container min-h-screen max-h-screen overflow-y-auto p-4 pb-8" style="display: none;">
+        <!-- Header -->
+        <div class="text-center mb-8 flex items-center justify-center gap-4">
+            <h1 class="font-display font-black text-5xl md:text-7xl birthday-3d-text" style="filter: drop-shadow(0 0 8px rgba(255,255,255,0.3))">Happy Birthday, Bhai!  !</h1>
+            <button id="confetti-btn" title="Celebrate!">🎉</button>
+        </div>
+        <p class="text-[#ffd700] text-lg mt-[2rem] mb-8 text-center" style="text-shadow: 0 0 10px rgba(255, 215, 0, 0.5)">May God Bless You with Everything</p>
+
+
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full">
+            
+            <div class="widget md:col-span-2 lg:col-span-2 lg:row-span-2">
+                <h2 class="font-display text-2xl text-white mb-4">A Message From Your Brother</h2>
+                <div class="text-lg leading-relaxed h-full">
+                    <p id="typing-text"></p>
+                </div>
+            </div>
+
+            <div class="widget">
+                <h2 class="font-display text-2xl text-white mb-4">Birthday Stats</h2>
+                <ul class="space-y-3">
+                    <li><strong class="text-amber-400">Celebrating:</strong>Your Born Day</li>
+                    <li><strong class="text-amber-400">Good Times:</strong> Countless</li>
+                    <li><strong class="text-amber-400">Vibes:</strong> Immaculate</li>
+                    <li><strong class="text-amber-400">Today's Goal:</strong> Just Celebrate You!</li>
+                </ul>
+            </div>
+
+            <div class="widget">
+                <h2 class="font-display text-2xl text-white mb-4">Acrostic Poem</h2>
+                <ul id="acrostic" class="space-y-2"></ul>
+                <button id="acrostic-btn" class="mt-4 w-full bg-amber-500 text-gray-900 font-bold py-2 px-4 rounded-lg hover:bg-amber-400 transition">Reveal</button>
+            </div>
+
+            <div class="widget md:col-span-2 lg:col-span-2">
+                <h2 class="font-display text-2xl text-white mb-4">Your Birthday Horoscope</h2>
+                <p class="text-base leading-relaxed">
+                    <strong class="text-amber-400">This Year's Forecast:</strong> A year of unparalleled success awaits. Your natural leadership will shine, leading to the successful management of group plans and a hostile takeover of the snack cabinet. And in all these i will always be there for you 🫶🏻.
+                    <br><br>
+                    <strong class="text-amber-400">Watch out for:</strong> Unexpected "genius plans" on NEXT YEAR.
+                    <br>
+                    <strong class="text-amber-400">Lucky Number:</strong>   03/10
+                </p>
+            </div>
+            
+            <div class="widget md:col-span-2 lg:col-span-4">
+                <h2 class="font-display text-2xl text-white mb-4">Some of the Photos choosen by Me!!</h2>
+                <div id="photo-wall" class="photo-wall-grid mb-4 min-h-[100px]"></div>
+                <button id="reveal-photo-btn" class="w-full bg-blue-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition">Reveal a Pic</button>
+            </div>
+
+            <div class="widget md:col-span-2 lg:col-span-4 birthday-wish">
+                <h2 class="font-display text-3xl text-amber-400 mb-4 text-center">A Wish For My Brother</h2>
+                <p class="text-lg text-center leading-relaxed max-w-3xl mx-auto">
+                    Happy 19th Birthday, Jenil! More than just a day, this is a celebration of the incredible person you are. I hope the year ahead is filled with massive success, boundless joy, and everything you've worked so hard for. You deserve the best, today and always.</p>
+                <p class="text-white mt-6 text-xl font-bold text-center">- Your Brother for Life</p>
+            </div>
+
+            <!-- REPLACED WIDGET -->
+            <div class="widget md:col-span-2">
+                <h2 class="font-display text-2xl text-white mb-4">The F.B. Hotline</h2>
+                <p class="text-sm mb-4 text-gray-400">For Overthinking Emergencies Only. Your Fire Brigade is on standby.</p>
+                <div class="bg-gray-900 p-4 rounded-lg min-h-[160px] flex flex-col justify-center text-left">
+                    <p id="hotline-title" class="text-2xl font-bold text-red-400">Status: All Clear</p>
+                    <p id="hotline-desc" class="text-gray-300 mt-2 text-md">No mental fires detected. If this is an error, please sound the alarm below.</p>
+                </div>
+                <button id="dispatch-fb-btn" class="mt-4 w-full bg-red-600/80 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition">Sound the Alarm</button>
+            </div>
+
+            <div class="widget md:col-span-2">
+                 <h2 class="font-display text-2xl text-white mb-4">Just a normal Picture with a cute Face</h2>
+                 <div id="surprise-container" class="relative aspect-video rounded-lg bg-gray-900 flex items-center justify-center cursor-pointer">
+                    <p id="surprise-text" class="text-lg font-bold">Click to Reveal</p>
+                    <img id="surprise-img" src="Pic for HBD/IMG_20240403_171741.jpg" alt="Special Memory" class="absolute inset-0 w-full h-full object-cover rounded-lg opacity-0 transition-opacity duration-500">
+                 </div>
+            </div>
+
+            <div class="widget md:col-span-2 lg:col-span-4">
+                <h2 class="font-display text-2xl text-white mb-4">Say Thanks to Harshit!</h2>
+                <form id="thanksForm" class="space-y-4">
+                    <div>
+                        <label class="block text-amber-400 mb-2" for="message">Your Message to Harshit</label>
+                        <textarea id="message" name="message" rows="4" 
+                            class="w-full px-4 py-2 rounded-lg bg-gray-900 border border-amber-500/30 text-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                            placeholder="Write your birthday message here..."></textarea>
+                    </div>
+                    <button type="submit" 
+                        class="w-full bg-amber-500 text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-amber-400 transition-all transform hover:scale-105"
+                        onclick="sendThanks(event)">
+                        Send Thanks 🎉
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 bg-black/95 hidden z-50 flex items-center justify-center">
+        <button class="absolute top-4 right-4 text-white text-4xl hover:text-amber-400 transition-colors p-2" onclick="closeLightbox()">&times;</button>
+        <button class="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-amber-400 transition-colors p-4 hover:bg-white/10 rounded-full" onclick="changeLightboxImage(-1)">❮</button>
+        <button class="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-amber-400 transition-colors p-4 hover:bg-white/10 rounded-full" onclick="changeLightboxImage(1)">❯</button>
+        <div class="relative">
+            <div id="loading-spinner" class="loading-spinner"></div>
+            <img id="lightbox-img" src="" alt="Fullscreen view" class="max-h-[90vh] max-w-[90vw] object-contain transition-all duration-300 rounded-lg shadow-2xl">
+        </div>
+    </div>
+
+    <script>
+    // Lightbox functionality
+    let currentImageIndex = 0;
+    let allImages = [];
+
+    function openLightbox(imgSrc, clickedElement) {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const spinner = document.getElementById('loading-spinner');
+        
+        // Show loading state
+        lightboxImg.style.opacity = '0';
+        spinner.style.display = 'block';
+        
+        // Collect all viewable images
+        allImages = [
+            ...Array.from(document.querySelectorAll('.photo-wall-item.revealed')),
+            ...Array.from(document.querySelectorAll('.polaroid img')),
+            ...Array.from(document.querySelectorAll('.carousel-item img'))
+        ].map(img => img.src);
+        
+        currentImageIndex = allImages.indexOf(imgSrc);
+        
+        const newImage = new Image();
+        newImage.onload = () => {
+            spinner.style.display = 'none';
+            lightboxImg.src = imgSrc;
+            lightboxImg.style.opacity = '1';
+            
+            // Show the lightbox after image is loaded
+            lightbox.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            playNote();
+        };
+        newImage.onerror = () => {
+            spinner.style.display = 'none';
+            console.error('Failed to load image:', imgSrc);
+            // Don't show lightbox if image failed to load
+            return;
+            console.error('Failed to load image:', imgSrc);
+        };
+        newImage.src = imgSrc;
+        lightbox.classList.remove('hidden');
+        lightbox.classList.add('fade-in');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        const lightbox = document.getElementById('lightbox');
+        lightbox.classList.add('fade-out');
+        setTimeout(() => {
+            lightbox.classList.remove('fade-out');
+            lightbox.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+
+    function changeLightboxImage(direction) {
+        currentImageIndex = (currentImageIndex + direction + allImages.length) % allImages.length;
+        const lightboxImg = document.getElementById('lightbox-img');
+        const spinner = document.getElementById('loading-spinner');
+        
+        // Hide current image and show spinner
+        lightboxImg.style.opacity = '0';
+        spinner.style.display = 'block';
+        
+        // Load new image
+        const newImage = new Image();
+        newImage.onload = () => {
+            spinner.style.display = 'none';
+            lightboxImg.src = allImages[currentImageIndex];
+            lightboxImg.style.opacity = '1';
+        };
+        newImage.onerror = () => {
+            spinner.style.display = 'none';
+            console.error('Failed to load image:', allImages[currentImageIndex]);
+            // Try next image if current one fails
+            changeLightboxImage(1);
+        };
+        newImage.src = allImages[currentImageIndex];
+    }
+
+    // Close lightbox on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') changeLightboxImage(-1);
+        if (e.key === 'ArrowRight') changeLightboxImage(1);
+    });
+
+    // Touch swipe handling for mobile
+    let touchStartX = 0;
+    let touchStartY = 0;
+    
+    document.getElementById('lightbox').addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, false);
+    
+    document.getElementById('lightbox').addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        
+        // Only handle horizontal swipes (ignore vertical scrolling)
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (Math.abs(deltaX) > 50) { // Minimum swipe distance
+                if (deltaX > 0) {
+                    changeLightboxImage(-1); // Swipe right, go to previous
+                } else {
+                    changeLightboxImage(1);  // Swipe left, go to next
+                }
+            }
+        }
+    }, false);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const introOverlay = document.getElementById('intro-overlay');
+        const enterBtn = document.getElementById('enter-btn');
+        const mainContent = document.querySelector('main');
+
+        // Initialize clickable images
+        const allImageElements = [
+            ...Array.from(document.querySelectorAll('.photo-wall-item')),
+            ...Array.from(document.querySelectorAll('.polaroid img')),
+            ...Array.from(document.querySelectorAll('.carousel-item img'))
+        ];
+        
+        // Add click handlers to all images
+        allImageElements.forEach(img => {
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', function() {
+                openLightbox(this.src, this);
+            });
+        });
+
+        // Update global allImages array
+        allImages = allImageElements.map(img => img.src);
+
+        // Ensure proper initialization
+        mainContent.style.display = 'none';
+        document.body.style.overflow = 'hidden';
+
+        // Function to show main content
+        function showMainContent() {
+            introOverlay.classList.add('celebrate-and-hide');
+            mainContent.style.display = 'block';
+            document.body.style.overflow = 'auto';
+            typeWriter();
+        }
+
+        // Handle enter button click
+        enterBtn.addEventListener('click', async () => {
+            try {
+                await Tone.start();
+                synth.triggerAttackRelease("E5", "8n", Tone.now());
+                synth.triggerAttackRelease("G5", "8n", Tone.now() + 0.2);
+            } catch (error) {
+                console.log('Audio error:', error);
+            }
+
+            confetti({
+                particleCount: 200,
+                spread: 120,
+                origin: { y: 0.6 },
+                colors: ['#f59e0b', '#fbbf24', '#ffffff']
+            });
+
+            showMainContent();
+        });
+        
+        const synth = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
+        }).toDestination();
+
+        enterBtn.addEventListener('click', () => {
+            Tone.start();
+            synth.triggerAttackRelease("E5", "8n", Tone.now());
+            synth.triggerAttackRelease("G5", "8n", Tone.now() + 0.2);
+
+            // Trigger flowing animations
+            setTimeout(() => {
+                document.querySelectorAll('.widget').forEach((widget, index) => {
+                    widget.style.animationDelay = `${index * 0.2}s`;
+                    widget.style.animationPlayState = 'running';
+                });
+            }, 500);
+            
+            confetti({
+                particleCount: 200,
+                spread: 120,
+                origin: { y: 0.6 },
+                colors: ['#f59e0b', '#fbbf24', '#ffffff']
+            });
+            
+            introOverlay.classList.add('celebrate-and-hide');
+            mainContent.classList.remove('hidden');
+            document.body.style.overflow = 'auto';
+            typeWriter();
+        });
+
+        const confettiBtn = document.getElementById('confetti-btn');
+        confettiBtn.addEventListener('click', () => {
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { y: 0.6 },
+                colors: ['#f59e0b', '#fbbf24', '#ffffff', '#c9d1d9']
+            });
+        });
+
+        const typingText = "Happiest Birthday, Jenil! From the beginning till today, we shared many moments—good, tough, everything between. This day reminds me how far we came together, the memories we built along the way, and the things we have done together are life-long memories. These memories are the kind we can share like long stories filled with thrill and strategies. A small note for a big day—here’s to you, many more moments ahead.";
+        let i = 0;
+        const typingElement = document.getElementById('typing-text');
+        function typeWriter() {
+            if (i < typingText.length) {
+                typingElement.innerHTML += typingText.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+
+        const acrosticLines = ["<strong>J</strong> - Joyful spirit, always bright","<strong>E</strong> - Excellent leader, shining light","<strong>N</strong> - Noble friend, through day and night","<strong>I</strong> - Inspiring anchor, what a sight","<strong>L</strong> - Loyal brother, everything's right"];
+        const acrosticBtn = document.getElementById('acrostic-btn');
+        const acrosticList = document.getElementById('acrostic');
+        let lineIndex = 0;
+        acrosticBtn.addEventListener('click', () => {
+            if (lineIndex < acrosticLines.length) {
+                const li = document.createElement('li');
+                li.innerHTML = acrosticLines[lineIndex];
+                li.className = 'opacity-0 translate-y-2 transition-all duration-500';
+                acrosticList.appendChild(li);
+                setTimeout(() => { li.classList.remove('opacity-0', 'translate-y-2'); }, 50);
+                lineIndex++;
+            }
+            if (lineIndex === acrosticLines.length) {
+                acrosticBtn.textContent = "All Revealed!";
+                acrosticBtn.disabled = true;
+            }
+        });
+
+        // --- F.B. Hotline Logic ---
+        const dispatchFbBtn = document.getElementById('dispatch-fb-btn');
+        const hotlineTitle = document.getElementById('hotline-title');
+        const hotlineDesc = document.getElementById('hotline-desc');
+
+        const hotlineMessages = [
+            {
+                title: "Situation Assessed",
+                description: "Analysis complete. The situation is 99% less catastrophic than your brain suggests. Your F.B. advises you to stand down."
+            },
+            {
+                title: "System Overload Detected",
+                description: "Your brain is running at 500 RPM on a problem that requires 5. Rebooting with a mandatory break is highly recommended."
+            },
+            {
+                title: "F.B. Motto Activated",
+                description: "Remember the motto: 'Is this a real fire, or are you just making toast again?' Let's figure it out together, brother."
+            },
+            {
+                title: "Permission Granted",
+                description: "This is your official permission slip to stop running a thousand simulations in your head. The real world is way less complicated, I promise."
+            },
+            {
+                title: "Emergency Contained",
+                description: "The 'what if' scenarios have been successfully contained. Your Fire Brigade has it under control. We've always got your back."
+            },
+            {
+                title: "Probability Report",
+                description: "I've run the numbers. The probability of your worst-case scenario happening is the same as a squirrel winning the lottery. Relax."
+            }
+        ];
+
+        // NEW: Array of sounds for the hotline button
+        const hotlineSounds = [
+            () => {
+                const now = Tone.now();
+                synth.triggerAttackRelease("C5", "16n", now);
+                synth.triggerAttackRelease("G5", "16n", now + 0.1);
+            },
+            () => {
+                const now = Tone.now();
+                synth.triggerAttackRelease("A4", "16n", now);
+                synth.triggerAttackRelease("E5", "16n", now + 0.1);
+            },
+            () => {
+                synth.triggerAttackRelease("B5", "8n", Tone.now());
+            },
+            () => {
+                const now = Tone.now();
+                synth.triggerAttackRelease("C4", "16n", now);
+                synth.triggerAttackRelease("E4", "16n", now + 0.1);
+                synth.triggerAttackRelease("G4", "16n", now + 0.2);
+            }
+        ];
+
+        dispatchFbBtn.addEventListener('click', () => {
+            // NEW: Play a random sound on click
+            const randomSoundIndex = Math.floor(Math.random() * hotlineSounds.length);
+            hotlineSounds[randomSoundIndex]();
+
+            const randomIndex = Math.floor(Math.random() * hotlineMessages.length);
+            const randomMessage = hotlineMessages[randomIndex];
+            hotlineTitle.textContent = randomMessage.title;
+            hotlineDesc.textContent = randomMessage.description;
+        });
+
+
+        const photoWall = document.getElementById('photo-wall');
+        const revealBtn = document.getElementById('reveal-photo-btn');
+
+        // Function to add click handler to an image
+        function addImageClickHandler(img) {
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', function() {
+                openLightbox(this.src, this);
+            });
+        }
+
+        const wallPhotos = [
+            'Pic for HBD/IMG_20250511_181118.jpg',
+            'Pic for HBD/IMG_20240407_012624_273.jpg',
+            'Pic for HBD/IMG_20240515_124740.jpg',
+            'Pic for HBD/IMG_20240930_172312.jpg',
+            'Pic for HBD/IMG_20241003_165625.jpg',
+            'Pic for HBD/IMG_20250905_155723_635.webp',
+            'Pic for HBD/DSC_2449.JPG',
+            'Pic for HBD/DSC_6538.JPG',
+            'Pic for HBD/IMG-20250907-WA0034.jpg',
+            'Pic for HBD/37723249-5073-4f93-812d-e81cd54a75c5.jpeg'
+        ];
+        let revealedPhotoCount = 0;
+        
+        wallPhotos.forEach((src, index) => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = `Memory ${index + 1}`;
+            img.className = 'photo-wall-item';
+            img.dataset.index = index;
+            addImageClickHandler(img);  // Add click handler to each image
+            photoWall.appendChild(img);
+        });
+        
+        const photoWallItems = document.querySelectorAll('.photo-wall-item');
+
+        revealBtn.addEventListener('click', () => {
+            if (revealedPhotoCount < wallPhotos.length) {
+                photoWallItems[revealedPhotoCount].classList.add('revealed');
+                revealedPhotoCount++;
+            }
+            if (revealedPhotoCount === wallPhotos.length) {
+                revealBtn.textContent = "All Images Shown";
+                revealBtn.disabled = true;
+            }
+        });
+
+        const surpriseContainer = document.getElementById('surprise-container');
+        surpriseContainer.addEventListener('click', () => {
+            const text = document.getElementById('surprise-text');
+            const img = document.getElementById('surprise-img');
+            text.style.transform = 'scale(1.1)';
+            text.style.opacity = '0';
+            img.style.opacity = '1';
+            img.style.transform = 'scale(1)';
+            
+            // Play a special sound effect
+            synth.triggerAttackRelease("C5", "8n", Tone.now());
+            synth.triggerAttackRelease("E5", "8n", Tone.now() + 0.1);
+            synth.triggerAttackRelease("G5", "8n", Tone.now() + 0.2);
+            
+            // Trigger some confetti
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        });
+
+        const carousel = document.getElementById('gallery-carousel');
+        // IMPORTANT: Add 8-10 photo URLs here for the main gallery
+        const galleryPhotos = [
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+1',
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+2',
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+3',
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+4',
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+5',
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+6',
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+7',
+            'https://placehold.co/400x400/ffffff/000000?text=Gallery+8',
+        ];
+
+        galleryPhotos.forEach(src => {
+            const div = document.createElement('div');
+            div.className = 'carousel-item';
+            div.style.cursor = 'pointer';
+            div.innerHTML = `<img src="${src}" alt="Gallery image">`;
+            carousel.appendChild(div);
+        });
+
+        // Send thanks function
+        window.sendThanks = function(event) {
+            event.preventDefault();
+            const message = document.getElementById('message').value;
+            if (!message) {
+                alert('Please write a message first! 😊');
+                return;
+            }
+
+            const mailtoLink = `mailto:harshitmajithiya7@gmail.com?subject=Birthday Thanks from ${encodeURIComponent('Jenil')}&body=${encodeURIComponent(message)}`;
+            window.location.href = mailtoLink;
+
+            // Play celebration sound
+            synth.triggerAttackRelease("C5", "8n", Tone.now());
+            synth.triggerAttackRelease("E5", "8n", Tone.now() + 0.1);
+            synth.triggerAttackRelease("G5", "8n", Tone.now() + 0.2);
+
+            // Trigger confetti
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            // Reset form
+            document.getElementById('message').value = '';
+        }
+    });
+    </script>
+    <div class="fixed bottom-4 right-4 text-sm text-amber-400/80 hover:text-amber-400 transition-colors duration-300">
+        Made with ❤️ by Harshit Majithia - A small gesture for you
+    </div>
+</body>
+</html>
+
